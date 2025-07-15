@@ -1,0 +1,116 @@
+.landing-container {
+  height: 100vh;
+  width: 100%;
+  background-size: 400% 400%;
+  background-color: black;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+
+.landing-overlay {
+  position: relative;
+  z-index: 1;
+  padding: 60px;
+  display: flex;
+  gap: 50px;
+  background-color: #0590b74e;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 0 20px #297e8f80;
+  text-align: center;
+}
+
+
+
+.title {
+  font-size: 3.5rem;
+  color: #0591b7;
+  text-shadow: 0 0 20px #000000;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.brand {
+  
+  font-weight: bold;
+}
+
+.subtitle {
+  font-size: 1.4rem;
+  color: #d0e7f9;
+  margin-bottom: 50px;
+  line-height: 1.6;
+}
+
+.cta-button {
+  padding: 16px 36px;
+  font-size: 1.2rem;
+  /* background: linear-gradient(135deg, #0591b7, #105968); */
+  background-color: #000000;
+  border: none;
+  border-radius: 12px;
+  color: #0591b7;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(0, 175, 146, 0.4);
+  transition: all 0.3s ease;
+  align-items: center;
+  display: inline-flex;
+}
+
+.cta-button img{
+  width: 40px;
+  height: 40px;
+}
+.cta-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 45px rgba(0, 122, 102, 0.8);
+}
+
+.feature-list {
+  list-style: none;
+  padding: 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 10px rgba(89, 195, 205, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cdeef4;
+  font-size: 1.05rem;
+  line-height: 3;
+  text-align: left;
+  transition: background 0.3s ease;
+}
+
+.feature-list li {
+  position: relative;
+  padding-left: 32px;
+  margin-bottom: 12px;
+}
+
+
+@keyframes pulse {
+  0% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0.6; transform: scale(1); }
+}
+
+.footer-credit {
+  position: absolute;
+  bottom: 15px;
+  right: 25px;
+  font-size: 0.9rem;
+  color: #88d5e6;
+  opacity: 0.6;
+  font-family: "Segoe UI", sans-serif;
+  pointer-events: none;
+}
+.footer-credit:hover {
+  opacity: 1;
+}

@@ -13,21 +13,24 @@ body,
   padding: 0;
   overflow: hidden;
 }
-
-.interview-container {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Top bar */
 .topBar {
   background-color: #011522;
   padding: 12px 20px;
   font-weight: bold;
   color: white;
+  height: 60px;
   font-size: 1.2rem;
   border-bottom: 1px solid #2e4a5f;
 }
+
+.interview-container {
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+}
+
+/* Top bar */
+
 
 
 /* Main layout */
@@ -123,7 +126,16 @@ body,
 .text-area {
   flex: 1;
 }
-
+.Timer-container{
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.exit{
+  background-color: #000000;
+  border: 2px solid #007f88;
+  padding: 8px;
+}
 .text-area textarea {
   width: 100%;
   height: 90%;

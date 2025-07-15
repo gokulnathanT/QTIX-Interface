@@ -8,10 +8,11 @@ import img2 from "../assets/mic.png";
 import Editor from "@monaco-editor/react";
 import Timer from "../Components/Timer";
 import { useNavigate } from "react-router-dom";
+import { SaveSummary } from "../Components/SaveSummary";
 
-export default function Interview() {
+export default function Interview({ onContinue, onEnd }) {
   const [loading, setLoading] = useState(false);
-  const [language,setLanguage]=useState("Java");
+  const [language, setLanguage] = useState("Java");
   const [chats, setChats] = useState([
     {
       sender: "ai",
@@ -19,13 +20,23 @@ export default function Interview() {
     },
   ]);
   const [input, setInput] = useState("");
-  const [editorLogic,setEditorLogic] = useState(``);
+  const [editorLogic, setEditorLogic] = useState(``);
   const [markedLogic, setMarkedLogic] = useState(``);
-  const [audio,setAudio] =useState(``);
+  const [audio, setAudio] = useState(``);
   const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [time, setTime] = useState(0);
   const [recognitionRef, setRecognitionRef] = useState(null);
-    const Navigate =useNavigate();
+  const Navigate = useNavigate();
 
+  const handleTime = (time) => {
+    setTime(time);
+    // console.log("Time sent to parent : ",time);
+  };
+
+  useEffect(() => {
+    onContinue?.();
+  }, [onContinue]);
   const fetchModelResponse = useCallback(async () => {
     if (!input.trim()) return;
     const combined = markedLogic
@@ -39,10 +50,10 @@ export default function Interview() {
     setMarkedLogic(``);
     setLoading(true);
     try {
-        const historyMap = [...chats.slice(-10), userMessage].map((msg) => ({
-          role: msg.sender==="ai"?"model":"user",
-          parts: [{ text: msg.text }],
-        }));
+      const historyMap = [...chats.slice(-10), userMessage].map((msg) => ({
+        role: msg.sender === "ai" ? "model" : "user",
+        parts: [{ text: msg.text }],
+      }));
       const responsePara = await fetch(
         `http://localhost:8080/api/geminiAI/ask`,
         {
@@ -50,7 +61,11 @@ export default function Interview() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ input: input, history: historyMap ,base:"base"}),
+          body: JSON.stringify({
+            input: input,
+            history: historyMap,
+            base: "base",
+          }),
         }
       );
 
@@ -62,20 +77,17 @@ export default function Interview() {
       setChats((msgs) => [...msgs, { sender: "ai", text: data }]);
     } catch (error) {
       return error.message;
-    }
-    finally{
+    } finally {
       setLoading(false);
     }
-  }, [input, chats,markedLogic]);
+  }, [input, chats, markedLogic]);
 
   const element = document.getElementById("chat-message");
-  useEffect(()=>{
-    if(element){
-      element.scrollTop=element.scrollHeight;
+  useEffect(() => {
+    if (element) {
+      element.scrollTop = element.scrollHeight;
     }
-  },[chats]);
-
- 
+  }, [chats]);
 
   const handleEditorMount = (editor, monaco) => {
     monaco.editor.defineTheme("custom-dark", {
@@ -91,23 +103,36 @@ export default function Interview() {
     monaco.editor.setTheme("custom-dark");
   };
 
-
-
-  const speak = (response) => {             // stop if new req arrive
+  const speak = (response) => {
     const synthesis = window.speechSynthesis;
-    const voices = synthesis.getVoices();
-    const selectedVoice = voices.find((v) => v.lang === "en-IN") || voices[0];
 
-    if (!selectedVoice) return;
+    const speakNow = () => {
+      const voices = synthesis.getVoices();
+      const selectedVoice = voices.find((v) => v.lang === "en-IN") || voices[0];
 
-    const utterance = new SpeechSynthesisUtterance(
-      makeVoiceFriendly(response)
-    );
-    utterance.speed = 0.95; // Adjust speed as needed
-    utterance.pitch = 1.2; // Adjust pitch as needed
-    utterance.volume=1;
-    utterance.voice = selectedVoice;
-    synthesis.speak(utterance);
+      if (!selectedVoice) return;
+
+      const utterance = new SpeechSynthesisUtterance(
+        makeVoiceFriendly(response)
+      );
+      utterance.rate = 0.95;
+      utterance.pitch = 1.2;
+      utterance.volume = 1;
+      utterance.voice = selectedVoice;
+
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+
+      synthesis.speak(utterance);
+    };
+
+    if (synthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        speakNow();
+      };
+    } else {
+      speakNow();
+    }
   };
 
   const makeVoiceFriendly = (text) => {
@@ -128,7 +153,7 @@ export default function Interview() {
       .replace(/ +(?=\W)/g, "") // Remove extra spaces before punctuation
       .trim();
   };
-  
+
   useEffect(() => {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -174,7 +199,6 @@ export default function Interview() {
       recognition.onend = null;
     };
   }, []);
-  
 
   const toggleMic = () => {
     if (!recognitionRef) return;
@@ -185,18 +209,16 @@ export default function Interview() {
       recognitionRef.start();
     }
   };
-  
-  const summarizeLogic= useCallback(async () => {
-    if(chats.length===1) return;
 
-  
+  const summarizeLogic = useCallback(async () => {
+    if (chats.length === 1) return;
     console.log("Summarizing logic...");
     setLoading(true);
     try {
-        const historyMap =chats.map((msg) => ({
-          role: msg.sender==="ai"?"model":"user",
-          parts: [{ text: msg.text }],
-        }));
+      const historyMap = chats.map((msg) => ({
+        role: msg.sender === "ai" ? "model" : "user",
+        parts: [{ text: msg.text }],
+      }));
       const responsePara = await fetch(
         `http://localhost:8080/api/geminiAI/summary`,
         {
@@ -217,19 +239,18 @@ export default function Interview() {
       }
       const data = await responsePara.text();
       console.log(data);
-      Navigate("/Summary", { state: { Summary: data } });
+
+      onEnd?.();
+      localStorage.removeItem("interviewStartTime");
+      Navigate("/Summary", { state: { Summary: data, duration: time } });
     } catch (error) {
       return error.message;
-    }
-    finally{
+    } finally {
       setLoading(false);
     }
   }, [chats]);
   return (
     <div className="interview-container">
-      <div className="topBar">
-        <p style={{ color: "lightsteelblue" }}>Q T I X</p>
-      </div>
       <div className="content">
         <div className="content-top">
           <div className="tools">
@@ -243,8 +264,24 @@ export default function Interview() {
               <span className="green box"></span>
             </div>
           </div>
-          <div className="Timer">
-            <Timer />
+          <div className="Timer-container">
+            <div className="Timer">
+              <Timer onDataSend={handleTime} />
+            </div>
+
+            <div
+              className="exit"
+              
+            >
+              <p onClick={() => {
+                console.log(localStorage.getItem("interviewStartTime"));  
+                localStorage.removeItem("interviewStartTime");
+
+                onEnd?.();
+                Navigate("/");
+
+              }}>❌</p>
+            </div>
           </div>
         </div>
 
@@ -288,7 +325,6 @@ export default function Interview() {
                   summarizeLogic();
                 }}
               >
-                {" "}
                 {loading ? "Loading" : "End & Summarize"}
               </button>
             </div>
@@ -316,10 +352,14 @@ export default function Interview() {
                   e.preventDefault();
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !loading) fetchModelResponse();
+                  if (e.key === "Enter" && !loading && !isSpeaking)
+                    fetchModelResponse();
                 }}
-                placeholder="Type your message..."
-                disabled={loading}
+                placeholder={
+                  isSpeaking
+                    ? "🔊 Listening to response..."
+                    : "Type your message..."
+                }
               />
               <img
                 src={img2}
@@ -328,7 +368,6 @@ export default function Interview() {
                 onClick={toggleMic}
               />
             </div>
-            {/* <VoiceSynthesis/> */}
           </div>
         </div>
       </div>
