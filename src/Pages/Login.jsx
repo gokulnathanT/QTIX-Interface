@@ -9,7 +9,7 @@ export default function Login({ setUser }) {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
-      console.log("User logged in: ", result.user);
+      localStorage.removeItem("interviewStartTime");
     } catch (error) {
       console.error("Error logging in with Google: ", error);
     }

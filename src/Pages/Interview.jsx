@@ -4,13 +4,12 @@ import "../Css/Interview.css";
 import { useCallback } from "react";
 import img from "../assets/booster.png";
 import img2 from "../assets/mic.png";
-// import VoiceSynthesis from "../Components/VoiceSynthesis";
 import Editor from "@monaco-editor/react";
 import Timer from "../Components/Timer";
 import { useNavigate } from "react-router-dom";
 import { SaveSummary } from "../Components/SaveSummary";
 
-export default function Interview({ onContinue, onEnd }) {
+export default function Interview() {
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("Java");
   const [chats, setChats] = useState([
@@ -22,21 +21,34 @@ export default function Interview({ onContinue, onEnd }) {
   const [input, setInput] = useState("");
   const [editorLogic, setEditorLogic] = useState(``);
   const [markedLogic, setMarkedLogic] = useState(``);
-  const [audio, setAudio] = useState(``);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [time, setTime] = useState(0);
   const [recognitionRef, setRecognitionRef] = useState(null);
   const Navigate = useNavigate();
+  const [back,setBack]=useState(false);
 
   const handleTime = (time) => {
     setTime(time);
-    // console.log("Time sent to parent : ",time);
   };
 
-  useEffect(() => {
-    onContinue?.();
-  }, [onContinue]);
+useEffect(() => {
+  const handlePopState = (event) => {
+    if (!back) {
+      window.history.pushState(null, null, window.location.href);
+      alert("Back navigation is disabled during the interview.");
+    }
+  };
+
+  window.history.pushState(null, null, window.location.href);
+  window.addEventListener("popstate", handlePopState);
+
+  return () => {
+    window.removeEventListener("popstate", handlePopState);
+  };
+}, [back]);
+
+
   const fetchModelResponse = useCallback(async () => {
     if (!input.trim()) return;
     const combined = markedLogic
@@ -138,7 +150,6 @@ export default function Interview({ onContinue, onEnd }) {
   const makeVoiceFriendly = (text) => {
     if (!text) return "";
 
-    // Replace tree-like symbols and code-related chars
     return text
       .replace(/\*/g, "asterisk")
       .replace(/ -/g, "minus")
@@ -169,7 +180,6 @@ export default function Interview({ onContinue, onEnd }) {
     recognition.continuous = true;
 
     recognition.onstart = () => {
-      console.log("🎙️ Voice recognition started");
       setIsRecording(true);
     };
 
@@ -178,14 +188,12 @@ export default function Interview({ onContinue, onEnd }) {
     };
 
     recognition.onend = () => {
-      console.log("🛑 Voice recognition ended");
       setIsRecording(false);
     };
 
     recognition.onresult = (e) => {
       const voice = e.results[e.resultIndex][0].transcript;
       if (voice) {
-        console.log("🎧 Voice Input Detected:", voice);
         setInput(voice);
         fetchModelResponse();
       }
@@ -212,7 +220,6 @@ export default function Interview({ onContinue, onEnd }) {
 
   const summarizeLogic = useCallback(async () => {
     if (chats.length === 1) return;
-    console.log("Summarizing logic...");
     setLoading(true);
     try {
       const historyMap = chats.map((msg) => ({
@@ -238,9 +245,7 @@ export default function Interview({ onContinue, onEnd }) {
         throw new Error(`Error : ${responsePara.status}`);
       }
       const data = await responsePara.text();
-      console.log(data);
-
-      onEnd?.();
+      
       localStorage.removeItem("interviewStartTime");
       Navigate("/Summary", { state: { Summary: data, duration: time } });
     } catch (error) {
@@ -274,12 +279,9 @@ export default function Interview({ onContinue, onEnd }) {
               
             >
               <p onClick={() => {
-                console.log(localStorage.getItem("interviewStartTime"));  
                 localStorage.removeItem("interviewStartTime");
-
-                onEnd?.();
+                setBack(true);
                 Navigate("/");
-
               }}>❌</p>
             </div>
           </div>
@@ -323,6 +325,7 @@ export default function Interview({ onContinue, onEnd }) {
               <button
                 onClick={() => {
                   summarizeLogic();
+                  setBack(true);
                 }}
               >
                 {loading ? "Loading" : "End & Summarize"}

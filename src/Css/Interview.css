@@ -135,6 +135,7 @@ gap: 10px;
   background-color: #000000;
   border: 2px solid #007f88;
   padding: 8px;
+  cursor: pointer;
 }
 .text-area textarea {
   width: 100%;

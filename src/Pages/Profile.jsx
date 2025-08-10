@@ -30,7 +30,6 @@ export default function Profile() {
     fetchUserSummaries();
   }, [userId]);
 
-  // Calculate average score, top topics, etc.
   const dashboardStats = useMemo(() => {
     if (summaries.length === 0) return null;
 
@@ -50,7 +49,32 @@ export default function Profile() {
     });
 
     const avgScore = scoreCount ? (totalScore / scoreCount).toFixed(2) : "N/A";
+    function durationToSeconds(durationString) {
+      console.log(durationString);
+      const parts = durationString.split(':').map(Number);
+      let totalSeconds = 0;
+      totalSeconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      return totalSeconds;
+    }
+    let totalSeconds=0;
+    for(const duration of summaries.map(item => item.duration)) {
+      totalSeconds+=durationToSeconds(duration);
+    }
+        function secondsToDuration(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600);
+        totalSeconds %= 3600;
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
 
+        const formattedHours = String(hours).padStart(2, '0');
+        const formattedMinutes = String(minutes).padStart(2, '0');
+        const formattedSeconds = String(seconds).padStart(2, '0');
+
+        return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+    }
+
+    const TotalDuration=secondsToDuration(totalSeconds);
+    console.log("Total Duration:");
     const topTopics = Object.entries(topicFrequency)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
@@ -59,12 +83,12 @@ export default function Profile() {
     return {
       avgScore,
       topTopics,
+      TotalDuration:secondsToDuration(totalSeconds)
     };
   }, [summaries]);
 
   return (
     <div className="profile-container">
-      {/* Top Dashboard Section */}
       <div className="profile-dashboard">
         <div className="top-bar">
           <div className="title">
@@ -82,39 +106,42 @@ export default function Profile() {
           </div>
           <div className="dashboard-card">
             <h4>Avg. Score</h4>
-            <p>{dashboardStats?.avgScore || "--"}/10</p>
+            <p>{dashboardStats?.avgScore * 10 || "--"}/100</p>
           </div>
           <div className="dashboard-card">
             <h4>Top Topics</h4>
             <p>{dashboardStats?.topTopics?.join(", ") || "--"}</p>
           </div>
           <div className="dashboard-card">
-            <h4>Last Duration</h4>
-            <p>{summaries[0]?.duration || "--"}</p>
+            <h4>Total Duration</h4>
+            <p>{dashboardStats?.TotalDuration || "--"}</p>
           </div>
         </div>
       </div>
 
-      {/* Scrollable Interview History */}
       <div className="interview-history">
         <h3>History of Interviews</h3>
         {summaries.length === 0 ? (
-          <p>No interviews found...</p>
+          <p className="no-interviews">No interviews found...</p>
         ) : (
           <div className="interview-list">
             {summaries.map((item, index) => (
-              <div key={item.id} className="interview-card">
-                <h4>Attempt {index + 1}</h4>
-                <p>
-                  <strong>Topics:</strong> {item.topics?.join(", ")}
-                </p>
-                <p>
-                  <strong>Duration:</strong> {item.duration}
-                </p>
-                <p>
-                  <strong>Summary:</strong> {item.summary}
-                </p>
-              </div>
+              <article key={item.id} className="interview-card">
+                <header>
+                  <div className="attempt-number">Attempt {index + 1}</div>
+                  <div className="attempt-chip">{item.duration}</div>
+                </header>
+                <section className="card-content">
+                  <p>
+                    <span className="label">Topics:</span>
+                    <span className="value">{item.topics?.join(", ")}</span>
+                  </p>
+                  <p>
+                    <span className="label">Summary:</span>
+                    <span className="value">{item.summary}</span>
+                  </p>
+                </section>
+              </article>
             ))}
           </div>
         )}

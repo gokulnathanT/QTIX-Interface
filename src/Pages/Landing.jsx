@@ -6,9 +6,11 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function Landing() {
+
    const navigate=useNavigate();
    const handleStartInterview=()=>{
-   navigate("/Interview");
+      navigate("/Interview");
+      localStorage.clear();
    }
 
   return (
@@ -22,7 +24,6 @@ export default function Landing() {
           <p className="subtitle">
             Your surreal, AI-powered interview simulator.
           </p>
-
           <a className="cta-button" onClick={handleStartInterview}>
             Begin Interview &nbsp;
             <img src={img} alt="booster" />

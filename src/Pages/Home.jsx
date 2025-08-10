@@ -7,37 +7,40 @@ import "../Css/Home.css";
 import Landing from "./Landing";
 import { onAuthStateChanged } from "firebase/auth";
 
-  import { auth } from "../auth/firebase";
+import { auth } from "../auth/firebase";
 import { signOut } from "firebase/auth";
+
+
 export default function Home() {
   const [user, setUser] = useState(null);
   const [isLandingComplete, setIsLandingComplete] = useState(false);
   const [open, setOpen] = useState(false);
-  const [loading,setLoading]=useState(true);
-  const navigate=useNavigate();
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  useEffect(()=>{
-    const unsubscribe=onAuthStateChanged(auth,(currentUser)=>{
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
     });
-    return ()=> unsubscribe();
-  },[])
+    return () => unsubscribe();
+  }, []);
   if (loading) return <div>Loading...</div>;
- const handleLogout = async () => {
-   try {
-     await signOut(auth); 
-     setIsLandingComplete(false);
-     setUser(null); 
-     console.log("User signed out");
-   } catch (error) {
-     console.error("Error signing out:", error);
-   }
- };
- const handleProfile=()=>{
-  navigate("/Profile");
- }
- 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsLandingComplete(false);
+      localStorage.clear();
+      setUser(null);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+  const handleProfile = () => {
+    navigate("/Profile");
+  };
+
   return (
     <div className="home-container">
       <div className="topBar">
@@ -74,11 +77,11 @@ export default function Home() {
         </div>
       </div>
       <div className="home-content">
-        {!user ? 
+        {!user ? (
           <Login setUser={setUser} />
-         : 
-          <Landing onContinue={() => setIsLandingComplete(true)} />
-        }
+        ) : (
+          <Landing  />
+        )}
       </div>
     </div>
   );
